@@ -71,3 +71,6 @@ kdialog --multiple --getopenurl . "*.cpp *.cc *.c |C and C++ Source Files"
 
 echo "Open multiple URLs, output on separate lines:"
 kdialog --multiple --separate-output --getopenurl . "*.cpp *.cc *.c |C and C++ Source Files"
+
+echo "Format color from color chooser:"
+kdialog --getcolor %4f%5f%6f

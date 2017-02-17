@@ -897,10 +897,32 @@ int main(int argc, char *argv[])
 
         if (dlg.exec() == KColorDialog::Accepted) {
             QString result;
-            if (dlg.color().isValid()) {
-                result = dlg.color().name();
+            QRegularExpressionMatch match;
+            if (dlg.color().isValid() && args.count()) {
+                bool found = false;
+                QStringList regx;
+                QString format = args.at(0);
+                regx << "^(%[1-9]+\\.?\\d*d|%d)[^%]*(%[1-9]+\\.?\\d*d|%d)[^%]*(%[1-9]+\\.?\\d*d|%d)$"
+                        << "^(%[+-]?\\d*\\.?\\d*[Ff])[^%]*(%[+-]?\\d*\\.?\\d*[Ff])[^%]*(%[+-]?\\d*\\.?\\d*[Ff])$"
+                        << "^(%[+-]?\\d*\\.?\\d*[eEgG])[^%]*(%[+-]?\\d*\\.?\\d*[eEgG])[^%]*(%[+-]?\\d*\\.?\\d*[eEgG])$"
+                        << "^(%\\d*[xX])[^%]*(%\\d*[xX])[^%]*(%\\d*[xX])$";
+                for (int i = 0; i < regx.size(); i++) {
+                    if (format.contains(QRegularExpression(regx.at(i)), &match)) {
+                        format = match.captured(1) + ", " + match.captured(2) + ", " + match.captured(3);
+                        if (format.contains(QRegularExpression("[dDxX]"))) {
+                            result.sprintf(format.toLocal8Bit().data(), dlg.color().red(), dlg.color().green(), dlg.color().blue());
+                        } else {
+                            result.sprintf(format.toLocal8Bit().data(), dlg.color().redF(), dlg.color().greenF(), dlg.color().blueF());
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+                if (false == found) {
+                    cout << "Invalid format pattern";
+                }
             } else {
-                result = dlg.defaultColor().name();
+                result = dlg.color().name();
             }
             cout << result.toLocal8Bit().data() << endl;
             return 0;
